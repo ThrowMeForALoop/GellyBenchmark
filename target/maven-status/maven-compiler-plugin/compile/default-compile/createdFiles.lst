@@ -1,0 +1,4 @@
+nl/vu/graphalytics/flink/BatchJob$1.class
+nl/vu/graphalytics/flink/StreamingJob.class
+nl/vu/graphalytics/flink/StreamingJob$LineSplitter.class
+nl/vu/graphalytics/flink/BatchJob.class
