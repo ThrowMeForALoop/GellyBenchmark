@@ -1,2 +1,4 @@
-/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/src/main/java/nl/vu/graphalytics/flink/StreamingJob.java
-/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/src/main/java/nl/vu/graphalytics/flink/BatchJob.java
+/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/GellyBenchmark/src/main/java/nl/vu/graphalytics/flink/Properties.java
+/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/GellyBenchmark/src/main/java/nl/vu/graphalytics/flink/StreamingJob.java
+/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/GellyBenchmark/src/main/java/nl/vu/graphalytics/flink/BatchJob.java
+/Volumes/Data/VUSubjects/Distributed System/Assigment/Graphalytic/flinkdriver/GellyBenchmark/src/main/java/nl/vu/graphalytics/loader/InputLoader.java
