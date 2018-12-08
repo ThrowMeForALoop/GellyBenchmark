@@ -1,6 +1,11 @@
+nl/vu/graphalytics/algorithms/BFS$VertexDistanceUpdater.class
+nl/vu/graphalytics/flink/Properties.class
+nl/vu/graphalytics/algorithms/BFS$InitVerticesMapper.class
+nl/vu/graphalytics/algorithms/BFS.class
 nl/vu/graphalytics/loader/InputLoader.class
 nl/vu/graphalytics/flink/StreamingJob$LineSplitter.class
 nl/vu/graphalytics/flink/BatchJob.class
+nl/vu/graphalytics/algorithms/BFS$MinDistanceMessenger.class
+nl/vu/graphalytics/loader/InputLoader$2.class
 nl/vu/graphalytics/loader/InputLoader$1.class
 nl/vu/graphalytics/flink/StreamingJob.class
-nl/vu/graphalytics/flink/Properties.class

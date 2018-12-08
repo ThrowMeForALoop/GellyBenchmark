@@ -58,16 +58,16 @@ public class InputLoader {
         this.params = params;
     }
 
-    private DataSet<Tuple3<Long, Long, Double>> getDefaultEdgeDataSet(ExecutionEnvironment env) {
+    public DataSet<Tuple3<Long, Long, Double>> getDefaultEdgeDataSet(ExecutionEnvironment env) {
 
         List<Tuple3<Long, Long, Double>> edges = new ArrayList< Tuple3<Long, Long, Double> >();
         for (Object[] e : EDGES) {
-            edges.add(new Tuple3<Long, Long, Double>((Long) e[0], (Long) e[1], (Double) e[2]));
+            edges.add(new Tuple3<Long, Long, Double>((Long) e[0], (Long) e[1], 1.0));
         }
         return env.fromCollection(edges);
     }
 
-    private DataSet<Tuple2<Long, Long>> getDefaultVerticesDataSet(ExecutionEnvironment env) {
+    public DataSet<Tuple2<Long, Long>> getDefaultVerticesDataSet(ExecutionEnvironment env) {
         List<Tuple2<Long, Long>> vertices = new ArrayList< Tuple2<Long, Long> >();
 
         vertices.add( new Tuple2<Long, Long> (0L, 0L));
@@ -83,7 +83,7 @@ public class InputLoader {
                     .map(new MapFunction<Tuple1<Long>, Tuple2<Long,Long> >() {
                         @Override
                         public Tuple2<Long, Long> map(Tuple1<Long> v) {
-                            return new Tuple2<Long, Long>(v.f0, 0L);
+                            return new Tuple2<Long, Long>(v.f0, v.f0);
                         }
                     });
         } else {
@@ -95,10 +95,28 @@ public class InputLoader {
 
     public DataSet<Tuple3<Long, Long, Double>> getEdgesDataSet(ExecutionEnvironment env, ParameterTool params) {
         if (params.has("edges")) {
-            return env.readCsvFile(params.get("edges"))
-                    .fieldDelimiter(" ")
-                    .lineDelimiter("\n")
-                    .types(Long.class, Long.class, Double.class);
+            return env.readTextFile(params.get("edges")).map(new MapFunction<String, Tuple3<Long,Long, Double> >() {
+                @Override
+                public Tuple3<Long,Long, Double> map(String line) {
+                    String[] columns = line.split(" ");
+                    Double weight = 1.0;
+
+                    if (columns.length == 3) {
+                        weight =  Double.parseDouble(columns[2]);
+                        //return new Tuple3(Long.parseLong(columns[0]), Long.parseLong(columns[1]), 1.0);
+                    } else {
+                        //return new Tuple3(Long.parseLong(columns[0]), Long.parseLong(columns[1]), Double.parseDouble(columns[2]));
+                    }
+
+                    return  new Tuple3(Long.parseLong(columns[0]), Long.parseLong(columns[1]), weight);
+                }
+            });
+
+//            return env.readCsvFile(params.get("edges"))
+//                    .fieldDelimiter(" ")
+//                    .lineDelimiter("\n")
+//                    .ignoreInvalidLines()
+//                    .types(Long.class, Long.class, Double.class);
         } else {
             System.out.println("--edges missing");
             System.out.println("Use --edges to specify file input.");

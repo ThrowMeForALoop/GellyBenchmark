@@ -5,7 +5,8 @@ if [ -z "$1" ]
     exit 1
 fi
 
-cp $1 src/main/resources/config.properties 
+cat $1 > src/main/resources/config.properties
+#cp $1 src/main/resources/config.properties 
 mvn clean package 
 
 

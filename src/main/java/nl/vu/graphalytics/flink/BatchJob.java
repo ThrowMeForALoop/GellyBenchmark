@@ -29,10 +29,12 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.graph.library.*;
 import org.apache.flink.graph.library.linkanalysis.PageRank;
 import org.apache.flink.graph.library.linkanalysis.PageRank.Result;
+import org.apache.flink.graph.library.SingleSourceShortestPaths;
+
 import org.apache.flink.graph.*;
 
 import nl.vu.graphalytics.loader.InputLoader;
-
+import nl.vu.graphalytics.algorithms.BFS;
 /**
  * Skeleton for a Flink Batch Job.
  *
@@ -45,7 +47,7 @@ import nl.vu.graphalytics.loader.InputLoader;
  */
 public class BatchJob {
 
-	//private static final ResourceBundle rb = ResourceBundle.getBundle("config");
+	private static final ResourceBundle rb = ResourceBundle.getBundle("config");
 
 	public static void main(String[] args) throws Exception {
 		// Parse command line parameter
@@ -60,15 +62,34 @@ public class BatchJob {
 
 	private static Graph<Long, Long, Double> loadGraph(ExecutionEnvironment env, ParameterTool parameter) {
 		final InputLoader inputLoader = new InputLoader(env, parameter);
+		DataSet<Tuple2<Long, Long>> vertexTuples;
+		DataSet<Tuple3<Long, Long, Double>> edgeTuples;
 
+		try {
+			// Get vertices and edges from --vertices and --edges input
+			vertexTuples = inputLoader.getVerticesDataSet(env, parameter);
+			System.out.printf("Vertices: %d \n ", vertexTuples.count());
 
-		// Get vertices and edges from --vertices and --edges input
-		DataSet<Tuple2<Long, Long>> vertexTuples = inputLoader.getVerticesDataSet(env, parameter);
-		DataSet<Tuple3<Long, Long, Double>> edgeTuples = inputLoader.getEdgesDataSet(env, parameter);
+			 edgeTuples = inputLoader.getEdgesDataSet(env, parameter);
+			System.out.printf("Edges: %d", edgeTuples.count());
+		} catch (Exception e) {
+			e.printStackTrace();
+			 vertexTuples = inputLoader.getDefaultVerticesDataSet(env);
+			 edgeTuples = inputLoader.getDefaultEdgeDataSet(env);
+		}
+
 		return Graph.fromTupleDataSet(vertexTuples, edgeTuples, env);
 	}
 
 	private static void runAlgorithm(Graph<Long, Long, Double> graph, ExecutionEnvironment env, ParameterTool parameter) {
+		try {
+			System.out.println(graph.getVertices().count());
+		} catch (Exception e) {
+			System.out.println("Load graph exception");
+			System.out.println(e.getMessage());
+		}
+
+
 		if (! parameter.has("algorithm")) {
 			System.out.println("--algorithm missing");
 			System.out.println("Use --algorithm pr / cdlp / lcc / bfs / wcc]");
@@ -85,13 +106,17 @@ public class BatchJob {
 		String propertyPrefix = "graph." + dataSetName + ".";
 
 		String algorithmAcronym = parameter.get("algorithm");
-		final ResourceBundle rb = ResourceBundle.getBundle("config");
 		Integer numIterations = 1;
 		Double dampingFactor = 0.85;
+		Long sourceVertexId = 0L;
 
 		try {
 			switch (algorithmAcronym) {
 				case "bfs":
+					sourceVertexId = Long.parseLong(rb.getString(propertyPrefix + "bfs.source-vertex"));
+					DataSet<Tuple2<Long, Long>> bfsResult = graph.run(new BFS(sourceVertexId, numIterations));
+					bfsResult.count();
+
 					break;
 				case "cdlp":
 					numIterations = Integer.parseInt(rb.getString(propertyPrefix +"cdlp.max-iterations"));
@@ -101,21 +126,32 @@ public class BatchJob {
 				case "lcc":
 					break;
 				case "pr":
+//					System.out.println(propertyPrefix + "pr.damping-factor");
+//					System.out.println(propertyPrefix + "pr.num-iterations");
 					dampingFactor =  Double.parseDouble(rb.getString(propertyPrefix + "pr.damping-factor"));
-					numIterations = Integer.parseInt(rb.getString(propertyPrefix + "graph.pr.num-iterations"));
+					numIterations = Integer.parseInt(rb.getString(propertyPrefix + "pr.num-iterations"));
+					System.out.printf("Start page ranking - Damping: %.2f - Iterator: %d \n", dampingFactor, numIterations);
 					DataSet<Result<Long>> verticesWithRank = graph.run(new PageRank<Long, Long, Double>(dampingFactor, numIterations));
+//					System.out.println("2");
 					verticesWithRank.count();
+//					System.out.println("3");
 					break;
 				case "sssp":
-					//Integer sourceVertexId = Integer.parseInt(rb.getString(propertyPrefix "sssp.source-vertex"));
+					sourceVertexId = Long.parseLong(rb.getString(propertyPrefix + "sssp.source-vertex"));
 
+					DataSet<Vertex<Long,Double>> singleSourceShortestPaths =
+							graph.run(new SingleSourceShortestPaths<Long, Long>(sourceVertexId, numIterations));
+					singleSourceShortestPaths.count();
 					break;
 				case "wcc":
+					DataSet<Vertex<Long, Long>> components = graph.run(new ConnectedComponents<Long, Long, Double>(numIterations));
+					components.count();
 					break;
-				default: throw new Exception("Algorithm " + algorithmAcronym + " is not supported!");
+				default:
+					throw new Exception("Algorithm " + algorithmAcronym + " is not supported!");
 			}
 		} catch (Exception exception) {
-			System.out.println(exception.getMessage());
+			exception.printStackTrace();
 		}
 
 	}
