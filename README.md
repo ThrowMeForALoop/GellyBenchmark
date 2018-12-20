@@ -5,5 +5,5 @@ A project for benchmarking the performance of Gelly graph platform
 Copy the properties file under src/main/datasetproperties
 
 Build the package with properties file:
-./build src/main/datasetproperties/dota-league.properties
+**./build src/main/datasetproperties/dota-league.properties**
 
